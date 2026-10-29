@@ -20,32 +20,19 @@
 #include "iceoryx_posh/roudi/iceoryx_roudi_app.hpp"
 #include "iceoryx_posh/roudi/roudi_cmd_line_parser.hpp"
 
-static const std::string roudiGroupName() {
-   const char * segment_from_env = std::getenv("ALAKA_ROUDI_SEGMENT");
-   if (segment_from_env != nullptr) {
-      return std::string(segment_from_env);
-   }
-   const gid_t gid = getegid();
-   const struct group * gp = getgrgid(gid);
-   if (gp != nullptr) {
-      return std::string(gp->gr_name);
-   }
-   return std::string("root");
-}
-
 static iox::RouDiConfig_t configureRoudi() {
    iox::mepoo::MePooConfig mempool;
    mempool.addMemPool({128, 512});   // data size = 128 B * 512 =64KB
    mempool.addMemPool({1024, 1024}); // data size = 1024 B * 1024 = 1MB
    mempool.addMemPool({16484, 256}); // data size = 16484 B * 256 = 4MB
    mempool.optimize();
-   auto grp_str = roudiGroupName();
+
    iox::mepoo::SegmentConfig scfg;
    //Init system memory segment with writer and reader group. only support one same Unix group.
    scfg.m_sharedMemorySegments.push_back(
       iox::mepoo::SegmentConfig::SegmentEntry(
-         iox::posix::PosixGroup::string_t(iox::cxx::TruncateToCapacity, grp_str.c_str()), 
-         iox::posix::PosixGroup::string_t(iox::cxx::TruncateToCapacity, grp_str.c_str()), 
+         iox::posix::PosixGroup::string_t(iox::cxx::TruncateToCapacity, "root"), 
+         iox::posix::PosixGroup::string_t(iox::cxx::TruncateToCapacity, "root"), 
          mempool
       ));
    iox::RouDiConfig_t rcfg;
