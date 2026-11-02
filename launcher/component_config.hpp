@@ -35,6 +35,9 @@ struct AlakaRuntimeConfig {
     std::vector<ComponentConfigEntry> components;
 };
 
+bool loadConfig(const std::string& path, AlakaRuntimeConfig& out);
+std::string findComponentLib(const std::string& r, const std::string& name, const std::string& version);
+
 }
 
 #endif
