@@ -212,7 +212,7 @@ void ComponentManager::writePidsFile() const {
         else if (p.pid < 0) st = "STOPPED";
         ss << p.entry.name << ' ' << p.pid << ' ' << st << ' ' << p.restarts << '\n';
     }
-    ss << "ebr_roudi " << (roudi_pid_ > 0 ? roudi_pid_ : static_cast<pid_t>(-1))
+    ss << "alaka_roudi " << (roudi_pid_ > 0 ? roudi_pid_ : static_cast<pid_t>(-1))
        << " RUNNING 0\n";
     alaka::filesystem::write_file(g_pids_file_path, ss.str());
     ::chmod(g_pids_file_path, 0666);
