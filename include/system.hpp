@@ -12,9 +12,15 @@
 #include <cstring>
 #include <string>
 
+#include <fstream>
+#include <ostream>
+#include <sstream>
+
 #include <pthread.h>
 #include <sched.h>
 #include <unistd.h>
+
+#include <sys/stat.h>
 
 namespace alaka {
 
@@ -62,14 +68,71 @@ inline int bind_cpu(const int* cpus, int count) noexcept {
 }
 
 inline void cpu_relax() noexcept {
-#ifdef __x86_64__ 
+#if defined(__x86_64__)
     __builtin_ia32_pause();
-#elifdef __aarch64__ 
+#elif defined(__aarch64__)
     asm volatile("yield" ::: "memory");
-#else 
+#else
     std::atomic_signal_fence(std::memory_order_seq_cst);
 #endif
 }
+
+}
+
+namespace filesystem {
+
+inline bool is_dir(const std::string& p) {
+    struct stat st{};
+    return !p.empty() && stat(p.c_str(), &st) == 0;
+}
+
+inline bool exists(const std::string& p) {
+    struct stat st{};
+    return !p.empty() && stat(p.c_str(), &st) == 0;
+}
+
+inline bool mkdir_p(const std::string& p) {
+    if (p.empty()) return false;
+    if (is_dir(p)) return true;
+    std::string current;
+    for (auto i = 0; i < p.size(); ++i) {
+        current.push_back(p[i]);
+        if (p[i] == '/' || i + 1 == p.size()) {
+            if (current != "/" && !current.empty()) ::mkdir(current.c_str(), 0775);
+        }
+    }
+    return is_dir(p);
+}
+
+inline std::string read_file(const std::string& p) {
+    std::ifstream f(p);
+    if (!f) return {};
+    std::ostringstream ss; ss << f.rdbuf(); return ss.str();
+}
+inline bool write_file(const std::string& p, const std::string& content) {
+    std::ofstream f(p, std::ios::trunc);
+    if (!f) return false;
+    f << content; return static_cast<bool>(f);
+}
+
+inline std::string exe_dir() {
+    char buf[4096] = {};
+    ssize_t n = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+    if (n <= 0) return ".";
+    std::string s(buf, static_cast<size_t>(n));
+    auto slash = s.rfind('/');
+    return slash == std::string::npos ? std::string(".") : s.substr(0, slash);
+}
+
+inline std::string arch_str() {
+    if (const char* t = std::getenv("ALAKA_TARGET")) return t;
+#if defined(__aarch64__)
+    return "aarch64";
+#else
+    return "x86_64";
+#endif
+}
+
 }
 
 }
