@@ -20,11 +20,24 @@
 #include "iceoryx_posh/roudi/iceoryx_roudi_app.hpp"
 #include "iceoryx_posh/roudi/roudi_cmd_line_parser.hpp"
 
+namespace {
+
+constexpr uint32_t KB = 1024U;
+constexpr uint32_t MB = 1024U * KB;
+
+struct MemoryPoolSpec {
+   uint32_t chunk_size_;  
+   uint32_t chunk_count_; 
+};
+constexpr MemoryPoolSpec g_mem_specs[] = {{128, 512}, {1 * KB, 512}, {16 * KB, 256}};
+
+} // namespace
+
 static iox::RouDiConfig_t configureRoudi() {
    iox::mepoo::MePooConfig mempool;
-   mempool.addMemPool({128, 512});   // data size = 128 B * 512 =64KB
-   mempool.addMemPool({1024, 1024}); // data size = 1024 B * 1024 = 1MB
-   mempool.addMemPool({16484, 256}); // data size = 16484 B * 256 = 4MB
+   for (const auto& spec : g_mem_specs) {
+      mempool.addMemPool({spec.chunk_size_, spec.chunk_count_});
+   }
    mempool.optimize();
 
    iox::mepoo::SegmentConfig scfg;
