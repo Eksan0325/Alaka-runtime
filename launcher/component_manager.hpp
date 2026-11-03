@@ -39,6 +39,12 @@ public:
     void loop(std::atomic<bool>& stop);
 
 private:
+    bool startRoudi();
+    void stopRoudi();
+
+    void writePidsFile() const;
+
+private:
     const AlakaRuntimeConfig& config_;
     std::vector<ProcessInfo> pinfoes_;
     std::string root_;

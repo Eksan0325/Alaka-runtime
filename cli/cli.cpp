@@ -30,16 +30,6 @@ std::string fworkspace(const std::string& start) {
     return {};
 }
 
-int find_pid_by_name(const char* comm) {
-    std::string cmd = std::string("pgrep -x ") + comm + " 2>/dev/null | head -1";
-    FILE* p = ::popen(cmd.c_str(), "r");
-    if (!p) return -1;
-    int pid = -1;
-    if (std::fscanf(p, "%d", &pid) != 1) pid = -1;
-    ::pclose(p);
-    return pid;
-}
-
 int cmd_run(const std::vector<std::string>& args) {
     std::string path(".");
     for (const std::string& arg : args) { 
@@ -56,7 +46,7 @@ int cmd_run(const std::vector<std::string>& args) {
 
     if (!alaka::filesystem::exists(cfg)) return -1;
     if (!alaka::filesystem::exists(mgr)) return -1;
-    const int pid = find_pid_by_name("alaka_launcher");  
+    const int pid = alaka::helper::find_pid_by_name("alaka_launcher");  
     if (pid > 0) return -1;
 
     ::setenv("ALAKA_ROOT", root.c_str(), 1);
