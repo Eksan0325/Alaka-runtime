@@ -26,10 +26,10 @@ class Subscriber;
 class Component {
 public:
     Component(const char* name, ComponentTriggerMode mode, int period_us = 0, const char* watch_topics = nullptr);
-    virtual ~Component();
+    virtual ~Component() {}
 
-    const char* name() const;
-    ComponentState state() const;
+    const char* name() const { return "";}
+    ComponentState state() const { return ComponentState::ERROR; }
     
     /**
      * @brief Publisher/Subscriber API
