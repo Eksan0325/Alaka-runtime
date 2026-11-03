@@ -135,6 +135,20 @@ inline std::string arch_str() {
 
 }
 
+namespace helper {
+    
+inline int find_pid_by_name(const char* comm) {
+    std::string cmd = std::string("pgrep -x ") + comm + " 2>/dev/null | head -1";
+    FILE* p = ::popen(cmd.c_str(), "r");
+    if (!p) return -1;
+    int pid = -1;
+    if (std::fscanf(p, "%d", &pid) != 1) pid = -1;
+    ::pclose(p);
+    return pid;
+}
+
+}
+
 }
 
 
