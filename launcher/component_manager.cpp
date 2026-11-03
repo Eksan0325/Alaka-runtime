@@ -103,7 +103,7 @@ ComponentManager::ComponentManager(const AlakaRuntimeConfig& cfg, const std::str
 ComponentManager::~ComponentManager() { stop(); }
 
 int ComponentManager::start() {
-    std::printf("[Alaka] alaka-runtime %s: %zu components count\n", config_.version.c_str(), config_.components.count());
+    std::printf("[Alaka] alaka-runtime %s: %zu components count\n", config_.version.c_str(), config_.components.size());
     
     if (!startRoudi()) return -1;
 
