@@ -8,7 +8,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-using namespace alaka;
+namespace alaka {
 
 bool loadConfig(const std::string& path, AlakaRuntimeConfig& out) {
     YAML::Node r;
@@ -57,4 +57,6 @@ std::string findComponentLib(const std::string& r, const std::string& name, cons
     version.empty() ? candidate = r + "/components/lib" + name + ".so" : candidate = r + "/components/lib" + name + "-" + version + ".so";
     if (checked(candidate)) { return candidate; }
     return "";
+}
+
 }
