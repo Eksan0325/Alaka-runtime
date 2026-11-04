@@ -89,7 +89,8 @@ private:
     extern "C" int runtime_init_and_run_cpp(void * handle) { \
         (void)handle; \
         (void)P; \
-        return 0;\
+        auto component = std::make_unique<C>();\
+        return component->run();\
     }
 
 #define ALAKA_REGISTER_EVENT_TRIGGER(C, N, V) ALAKA_REGISTER_PERIODIC_TRIGGER(C, N, V, 0)

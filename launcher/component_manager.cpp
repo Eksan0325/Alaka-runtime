@@ -54,7 +54,7 @@ bool startComponentsProcess(const std::string& rp, ProcessInfo& info) {
             std::fprintf(stderr, "[Alaka] Component %s load failed: %s\n", info.entry.name.c_str(), ::dlerror());
             _exit(21);
         }
-        //Call component's init and run function
+        //Call component's init and run function to block
         auto fnc = reinterpret_cast<int(*)(void*)>(::dlsym(handle, "runtime_init_and_run_cpp"));
         if (!fnc) {
             std::fprintf(stderr, "[Alaka] Component %s missing symbol runtime_init_and_run_cpp\n", info.entry.name.c_str());
@@ -153,6 +153,7 @@ void ComponentManager::loop(std::atomic_bool& st) {
         std::string cmd = alaka::filesystem::read_file(g_command_file_path);
         const auto t = alaka::rt::clock_now_ns();
         if (t - last_pids_write > 200LL * 1000000LL) {
+            writePidsFile();
             last_pids_write = t;
         }
         alaka::rt::sleep_ns(50LL * 1000000LL);
