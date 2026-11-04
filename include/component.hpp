@@ -26,10 +26,10 @@ class Subscriber;
 class Component {
 public:
     Component(const char* name, ComponentTriggerMode mode, int period_us = 0, const char* watch_topics = nullptr);
-    virtual ~Component() {}
+    virtual ~Component();
 
-    const char* name() const { return "";}
-    ComponentState state() const { return ComponentState::ERROR; }
+    const char* name() const;
+    ComponentState state() const;
     
     /**
      * @brief Publisher/Subscriber API
@@ -78,6 +78,16 @@ public:
     int call(int handle, const void* req, void* rep, int timeout_ms = 5000, uint8_t priority = 0) { return -1;} 
     int async_call(int handle, const void* req, uint8_t priority = 0) { return -1;}
     int async_poll(int handle, int req_id, void* rep) { return -1;}
+
+    /**
+     * @brief Block until the end of component's lifecycle, return code of process
+     */
+    int run(); //blocked loop
+protected:
+    virtual int on_configure() { return 0; }
+    virtual int on_init()      { return 0; }
+    virtual int on_update()    { return 0; }
+    virtual int on_deinit()    { return 0; }
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
