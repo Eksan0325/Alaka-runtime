@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <fstream>
+#include <cerrno>
 
 #include <dlfcn.h>
 #include <fcntl.h>
@@ -130,20 +131,40 @@ void ComponentManager::stop() {
     if (stopping_) return;
     stopping_ = true;
     for (auto& p : pinfoes_) { if (p.pid > 0) ::kill(p.pid, SIGTERM); }
+
     for (int i = 0; i < 100; ++i) {
         bool flag = false;
-        for (auto& p : pinfoes_) if (p.pid > 0 && ::kill(p.pid, 0) == 0) flag = true;
+        for (auto& p : pinfoes_) {
+            if (p.pid <= 0) continue;
+            int status = 0;
+            pid_t waited = ::waitpid(p.pid, &status, WNOHANG);
+            if (waited == p.pid) {
+                p.pid = -1;
+                p.state = ProcessState::Stopped;
+            } else if (waited == 0) {
+                flag = true;
+            } else if (waited < 0 && errno == EINTR) {
+                flag = true;
+            } else if (waited < 0) {
+                p.pid = -1;
+                p.state = ProcessState::Stopped;
+            }
+        }
         if (!flag) break;
         alaka::rt::sleep_ns(50 * 1000 * 1000);
     }
+
     for (auto& p : pinfoes_) {
-        if (p.pid > 0 && ::kill(p.pid, 0) == 0) {
+        if (p.pid > 0) {
             std::fprintf(stderr, "[Alaka] Component %s did not exit in 5s, sending SIGKILL\n", p.entry.name.c_str());
             ::kill(p.pid, SIGKILL);
+            int status = 0;
+            while (::waitpid(p.pid, &status, 0) < 0 && errno == EINTR) {}
         }
         p.pid = -1;
         p.state = ProcessState::Stopped;
     }
+    stopRoudi();
     std::printf("[Alaka] All components stopped\n");
 }
 
@@ -186,7 +207,7 @@ bool ComponentManager::startRoudi() {
         if (exroudi && exrmgmt) return true;
         int st = 0;
         pid_t r = waitpid(rpid, &st, WNOHANG);
-        if (r = rpid) {
+        if (r == rpid) {
             roudi_pid_ = -1;
             return false;
         }
