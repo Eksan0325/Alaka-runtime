@@ -1,5 +1,6 @@
 #include "include/component.hpp"
 #include "include/system.hpp"
+#include "protocol/protocol_base.hpp"
 
 #include <atomic>
 #include <csignal>
@@ -54,6 +55,11 @@ ComponentState Component::state() const {
 int Component::run() {
     component_stop_requested.store(false, std::memory_order_relaxed);
     install_component_signal_handlers();
+
+    //Init component's self iceoryx protocol
+    if (alaka::protocol::iceoryx::iceoryxProtocolPort().init(impl_->name_)) {
+        return -1;
+    }
 
     if (const char* env_name = std::getenv("ALAKA_COMPONENT_NAME")) {
         impl_->name_ = env_name;
